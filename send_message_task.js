@@ -1,0 +1,26 @@
+module.exports = {
+  url: "https://www.instagram.com",
+  loop: true,
+  tasks: [
+    { action: "press", key: "Tab", delay: 200 },
+    { action: "press", key: "Tab", delay: 200 },
+    { action: "press", key: "Tab", delay: 200 },
+    { action: "press", key: "Tab", delay: 200 },
+    { action: "press", key: "Tab", delay: 200 },
+    { action: "press", key: "Tab", delay: 200 },
+    { action: "press", key: "Tab", delay: 200 },
+    { action: "press", key: "Tab", delay: 200 },
+    { action: "press", key: "Enter", delay: 5000 },
+    { action: "wait", delay: 3000 },
+    { action: "press", key: "Tab", delay: 200 },
+    { action: "press", key: "Enter", delay: 5000 },
+    {
+      action: "type",
+      text: "Happy New Year :) \n https://upload.wikimedia.org/wikipedia/commons/e/eb/Mexico_City_New_Years_2013%21_%288333128248%29.jpg",
+      typeDelay: 50,
+      delay: 1000,
+    },
+    { action: "press", key: "Tab", delay: 200 },
+    { action: "press", key: "Enter", delay: 1000 },
+  ],
+};

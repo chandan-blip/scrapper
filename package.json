@@ -1,0 +1,13 @@
+{
+  "name": "puppeteer-scroll-tool",
+  "version": "1.0.0",
+  "description": "A tool to open URLs and scroll containers using Puppeteer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "nodemon": "^3.1.11",
+    "puppeteer": "^24.0.0"
+  }
+}
