@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 // Load tasks from JS config
-const config = require('./send_message_task.js');
+const config = require('./extract_comments_username_task.js');
 
 const USER_DATA_DIR = path.join(__dirname, 'chrome-data');
 
@@ -117,21 +117,35 @@ async function executeTask(page, task, browser) {
         }, task.attribute || 'text');
 
         currentItems.forEach(item => {
-          if (item) collectedData.add(item);
+          if (item) {
+            // If it's an href like /username/, extract just the username
+            if (task.attribute === 'href' && item.startsWith('/')) {
+              const match = item.match(/^\/([a-zA-Z0-9._]+)\/$/);
+              if (match) {
+                collectedData.add(match[1]);
+              }
+            } else {
+              collectedData.add(item);
+            }
+          }
         });
 
         console.log(`Scroll ${i + 1}/${collectIterations} - Collected: ${collectedData.size} items`);
 
-        // Scroll
-        try {
-          await page.$eval(task.selector, (el, amount) => {
-            el.scrollBy(0, amount);
-          }, collectScrollAmount);
-        } catch (e) {
-          // Try scrolling at coordinates if selector fails
-          if (task.x !== undefined && task.y !== undefined) {
-            await page.mouse.move(task.x, task.y);
-            await page.mouse.wheel({ deltaY: collectScrollAmount });
+        // Scroll - prefer coordinates if provided
+        if (task.x !== undefined && task.y !== undefined) {
+          await page.mouse.move(task.x, task.y);
+          await page.mouse.wheel({ deltaY: collectScrollAmount });
+        } else {
+          try {
+            await page.$eval(task.selector, (el, amount) => {
+              el.scrollBy(0, amount);
+            }, collectScrollAmount);
+          } catch (e) {
+            // Fallback to window scroll
+            await page.evaluate((amount) => {
+              window.scrollBy(0, amount);
+            }, collectScrollAmount);
           }
         }
 
