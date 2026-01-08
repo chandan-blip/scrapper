@@ -1,0 +1,224 @@
+<%- include('partials/header') %>
+
+<div class="page-header">
+  <h2>Leads (<%= pagination.total %>)</h2>
+</div>
+
+<div class="card">
+  <div class="filters">
+    <select id="filterCategory" onchange="applyFilters()">
+      <option value="">All Categories</option>
+      <% categories.forEach(cat => { %>
+      <option value="<%= cat._id %>" <%= currentCategory === cat._id.toString() ? 'selected' : '' %>><%= cat.name %></option>
+      <% }) %>
+    </select>
+    <select id="filterStatus" onchange="applyFilters()">
+      <option value="">All Statuses</option>
+      <option value="new" <%= currentStatus === 'new' ? 'selected' : '' %>>New</option>
+      <option value="messaged" <%= currentStatus === 'messaged' ? 'selected' : '' %>>Messaged</option>
+      <option value="replied" <%= currentStatus === 'replied' ? 'selected' : '' %>>Replied</option>
+      <option value="clicked" <%= currentStatus === 'clicked' ? 'selected' : '' %>>Clicked</option>
+      <option value="converted" <%= currentStatus === 'converted' ? 'selected' : '' %>>Converted</option>
+      <option value="ignored" <%= currentStatus === 'ignored' ? 'selected' : '' %>>Ignored</option>
+    </select>
+    <button class="btn btn-secondary btn-sm" onclick="location.href='/admin/leads'">Reset</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+        <th>Username</th>
+        <th>Category</th>
+        <th>Status</th>
+        <th>Message</th>
+        <th>Link</th>
+        <th>Extracted</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% leads.forEach(lead => { %>
+      <tr>
+        <td><input type="checkbox" class="lead-checkbox" value="<%= lead._id %>"></td>
+        <td>
+          <a href="https://instagram.com/<%= lead.username %>" target="_blank" style="text-decoration: none; color: #4361ee;">
+            @<%= lead.username %>
+          </a>
+        </td>
+        <td><%= lead.category ? lead.category.name : 'N/A' %></td>
+        <td><span class="badge badge-<%= lead.status %>"><%= lead.status %></span></td>
+        <td class="text-sm">
+          <% if (lead.messageStatus.sent) { %>
+            Sent
+            <% if (lead.messageStatus.seen) { %> > Seen<% } %>
+            <% if (lead.messageStatus.replied) { %> > Replied<% } %>
+          <% } else { %>
+            -
+          <% } %>
+        </td>
+        <td class="text-sm">
+          <% if (lead.linkTracking.linkSent) { %>
+            <% if (lead.linkTracking.clicked) { %>
+              Clicked (<%= lead.linkTracking.clickCount %>)
+            <% } else { %>
+              Sent
+            <% } %>
+          <% } else { %>
+            -
+          <% } %>
+        </td>
+        <td class="text-sm text-muted"><%= new Date(lead.extractedAt).toLocaleDateString() %></td>
+        <td>
+          <button class="btn btn-secondary btn-sm" onclick="updateLeadStatus('<%= lead._id %>')">Update</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteLead('<%= lead._id %>')">Delete</button>
+        </td>
+      </tr>
+      <% }) %>
+      <% if (leads.length === 0) { %>
+      <tr><td colspan="8" class="text-muted text-sm">No leads found</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+
+  <% if (pagination.pages > 1) { %>
+  <div class="pagination">
+    <% for (let i = 1; i <= pagination.pages; i++) { %>
+    <a href="?page=<%= i %>&category=<%= currentCategory %>&status=<%= currentStatus %>"
+       class="<%= i === pagination.page ? 'active' : '' %>"><%= i %></a>
+    <% } %>
+  </div>
+  <% } %>
+</div>
+
+<div class="card mt-2">
+  <div class="card-header">
+    <span class="card-title">Bulk Actions</span>
+  </div>
+  <div class="flex">
+    <select id="bulkStatus" class="form-control" style="width: 200px;">
+      <option value="">Select Status</option>
+      <option value="new">New</option>
+      <option value="messaged">Messaged</option>
+      <option value="replied">Replied</option>
+      <option value="clicked">Clicked</option>
+      <option value="converted">Converted</option>
+      <option value="ignored">Ignored</option>
+    </select>
+    <button class="btn btn-primary" onclick="bulkUpdateStatus()">Update Selected</button>
+  </div>
+</div>
+
+<!-- Update Lead Modal -->
+<div class="modal" id="updateLeadModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Update Lead Status</h3>
+      <button class="modal-close" onclick="hideModal('updateLeadModal')">&times;</button>
+    </div>
+    <form id="updateLeadForm">
+      <input type="hidden" name="leadId" id="updateLeadId">
+      <div class="form-group">
+        <label>Status</label>
+        <select class="form-control" name="status" id="updateStatus">
+          <option value="new">New</option>
+          <option value="messaged">Messaged</option>
+          <option value="replied">Replied</option>
+          <option value="clicked">Clicked</option>
+          <option value="converted">Converted</option>
+          <option value="ignored">Ignored</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label><input type="checkbox" name="sent" id="updateSent"> Message Sent</label>
+      </div>
+      <div class="form-group">
+        <label><input type="checkbox" name="delivered" id="updateDelivered"> Delivered</label>
+      </div>
+      <div class="form-group">
+        <label><input type="checkbox" name="seen" id="updateSeen"> Seen</label>
+      </div>
+      <div class="form-group">
+        <label><input type="checkbox" name="replied" id="updateReplied"> Replied</label>
+      </div>
+      <div class="form-group">
+        <label>Link Sent (URL)</label>
+        <input type="text" class="form-control" name="linkSent" id="updateLinkSent" placeholder="https://...">
+      </div>
+      <button type="submit" class="btn btn-primary">Update</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function applyFilters() {
+    const category = document.getElementById('filterCategory').value;
+    const status = document.getElementById('filterStatus').value;
+    let url = '/admin/leads?';
+    if (category) url += 'category=' + category + '&';
+    if (status) url += 'status=' + status;
+    location.href = url;
+  }
+
+  function toggleSelectAll() {
+    const checkboxes = document.querySelectorAll('.lead-checkbox');
+    const selectAll = document.getElementById('selectAll').checked;
+    checkboxes.forEach(cb => cb.checked = selectAll);
+  }
+
+  async function updateLeadStatus(id) {
+    document.getElementById('updateLeadId').value = id;
+    showModal('updateLeadModal');
+  }
+
+  document.getElementById('updateLeadForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('updateLeadId').value;
+
+    // Update status
+    const statusData = { status: document.getElementById('updateStatus').value };
+    await apiCall('/api/leads/' + id, 'PUT', statusData);
+
+    // Update message status
+    const msgData = {
+      sent: document.getElementById('updateSent').checked,
+      delivered: document.getElementById('updateDelivered').checked,
+      seen: document.getElementById('updateSeen').checked,
+      replied: document.getElementById('updateReplied').checked,
+      linkSent: document.getElementById('updateLinkSent').value
+    };
+    await apiCall('/api/leads/' + id + '/message-status', 'PUT', msgData);
+
+    location.reload();
+  });
+
+  async function deleteLead(id) {
+    if (!confirm('Delete this lead?')) return;
+    const res = await apiCall('/api/leads/' + id, 'DELETE');
+    if (res.success) location.reload();
+  }
+
+  async function bulkUpdateStatus() {
+    const status = document.getElementById('bulkStatus').value;
+    if (!status) {
+      alert('Please select a status');
+      return;
+    }
+
+    const checkboxes = document.querySelectorAll('.lead-checkbox:checked');
+    const leadIds = Array.from(checkboxes).map(cb => cb.value);
+
+    if (leadIds.length === 0) {
+      alert('Please select at least one lead');
+      return;
+    }
+
+    const res = await apiCall('/api/leads/bulk/status', 'PUT', { leadIds, status });
+    if (res.success) {
+      alert(res.message);
+      location.reload();
+    }
+  }
+</script>
+
+<%- include('partials/footer') %>

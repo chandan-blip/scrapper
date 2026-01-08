@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 // Load tasks from JS config
-const config = require('./extract_comments_username_task.js');
+const config = require('./tasks/extract_comments_username_task.js');
 
 const USER_DATA_DIR = path.join(__dirname, 'chrome-data');
 

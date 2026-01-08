@@ -1,0 +1,175 @@
+<%- include('partials/header') %>
+
+<div class="page-header">
+  <h2>Categories</h2>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">All Categories</span>
+    <button class="btn btn-primary" onclick="showModal('addCategoryModal')">Add Category</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Source URL</th>
+        <th>Leads</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% categories.forEach(cat => { %>
+      <tr>
+        <td><strong><%= cat.name %></strong></td>
+        <td><%= cat.sourceType %></td>
+        <td class="text-sm text-muted"><%= cat.sourceUrl ? cat.sourceUrl.substring(0, 40) + '...' : '-' %></td>
+        <td><%= cat.leadCount %></td>
+        <td>
+          <span class="badge badge-<%= cat.isActive ? 'completed' : 'ignored' %>">
+            <%= cat.isActive ? 'Active' : 'Inactive' %>
+          </span>
+        </td>
+        <td>
+          <button class="btn btn-secondary btn-sm" onclick="editCategory('<%= cat._id %>', '<%= cat.name %>', '<%= cat.sourceType %>', '<%= cat.sourceUrl %>', '<%= cat.description %>', <%= cat.isActive %>)">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCategory('<%= cat._id %>')">Delete</button>
+        </td>
+      </tr>
+      <% }) %>
+      <% if (categories.length === 0) { %>
+      <tr><td colspan="6" class="text-muted text-sm">No categories yet. Create one to start extracting leads.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal" id="addCategoryModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Add Category</h3>
+      <button class="modal-close" onclick="hideModal('addCategoryModal')">&times;</button>
+    </div>
+    <form id="addCategoryForm">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" class="form-control" name="name" required placeholder="e.g., Tech Influencers">
+      </div>
+      <div class="form-group">
+        <label>Source Type</label>
+        <select class="form-control" name="sourceType">
+          <option value="followers">Followers</option>
+          <option value="comments">Comments</option>
+          <option value="likes">Likes</option>
+          <option value="hashtag">Hashtag</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Source URL (optional)</label>
+        <input type="text" class="form-control" name="sourceUrl" placeholder="https://instagram.com/...">
+      </div>
+      <div class="form-group">
+        <label>Description (optional)</label>
+        <textarea class="form-control" name="description" placeholder="Brief description..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Create Category</button>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div class="modal" id="editCategoryModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Edit Category</h3>
+      <button class="modal-close" onclick="hideModal('editCategoryModal')">&times;</button>
+    </div>
+    <form id="editCategoryForm">
+      <input type="hidden" name="id" id="editCategoryId">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" class="form-control" name="name" id="editCategoryName" required>
+      </div>
+      <div class="form-group">
+        <label>Source Type</label>
+        <select class="form-control" name="sourceType" id="editCategoryType">
+          <option value="followers">Followers</option>
+          <option value="comments">Comments</option>
+          <option value="likes">Likes</option>
+          <option value="hashtag">Hashtag</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Source URL</label>
+        <input type="text" class="form-control" name="sourceUrl" id="editCategoryUrl">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea class="form-control" name="description" id="editCategoryDesc"></textarea>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" name="isActive" id="editCategoryActive"> Active
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary">Update Category</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('addCategoryForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+
+    const res = await apiCall('/api/categories', 'POST', data);
+    if (res.success) {
+      location.reload();
+    } else {
+      alert('Error: ' + res.error);
+    }
+  });
+
+  function editCategory(id, name, type, url, desc, isActive) {
+    document.getElementById('editCategoryId').value = id;
+    document.getElementById('editCategoryName').value = name;
+    document.getElementById('editCategoryType').value = type;
+    document.getElementById('editCategoryUrl').value = url || '';
+    document.getElementById('editCategoryDesc').value = desc || '';
+    document.getElementById('editCategoryActive').checked = isActive;
+    showModal('editCategoryModal');
+  }
+
+  document.getElementById('editCategoryForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('editCategoryId').value;
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    data.isActive = document.getElementById('editCategoryActive').checked;
+    delete data.id;
+
+    const res = await apiCall('/api/categories/' + id, 'PUT', data);
+    if (res.success) {
+      location.reload();
+    } else {
+      alert('Error: ' + res.error);
+    }
+  });
+
+  async function deleteCategory(id) {
+    if (!confirm('Delete this category and all its leads?')) return;
+    const res = await apiCall('/api/categories/' + id, 'DELETE');
+    if (res.success) {
+      location.reload();
+    } else {
+      alert('Error: ' + res.error);
+    }
+  }
+</script>
+
+<%- include('partials/footer') %>

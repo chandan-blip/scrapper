@@ -1,0 +1,141 @@
+<%- include('partials/header') %>
+
+<div class="page-header">
+  <h2>Analytics</h2>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card blue">
+    <h3>Total Leads</h3>
+    <div class="value"><%= messageStats.total %></div>
+  </div>
+  <div class="stat-card orange">
+    <h3>Messages Sent</h3>
+    <div class="value"><%= messageStats.messaged %></div>
+  </div>
+  <div class="stat-card purple">
+    <h3>Seen</h3>
+    <div class="value"><%= messageStats.seen %></div>
+  </div>
+  <div class="stat-card green">
+    <h3>Replied</h3>
+    <div class="value"><%= messageStats.replied %></div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Leads by Category</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Count</th>
+          <th>Share</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% const totalCatLeads = categoryStats.reduce((sum, s) => sum + s.count, 0); %>
+        <% categoryStats.forEach(stat => { %>
+        <tr>
+          <td><strong><%= stat.categoryName %></strong></td>
+          <td><%= stat.count %></td>
+          <td>
+            <div style="background: #e3f2fd; border-radius: 4px; height: 20px; width: 100px;">
+              <div style="background: #4361ee; border-radius: 4px; height: 100%; width: <%= Math.round(stat.count / totalCatLeads * 100) %>%;"></div>
+            </div>
+          </td>
+        </tr>
+        <% }) %>
+        <% if (categoryStats.length === 0) { %>
+        <tr><td colspan="3" class="text-muted text-sm">No data yet</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Message Funnel</span>
+    </div>
+    <div style="padding: 20px 0;">
+      <% const funnelData = [
+        { label: 'Total Leads', value: messageStats.total, color: '#4361ee' },
+        { label: 'Messaged', value: messageStats.messaged, color: '#f39c12' },
+        { label: 'Delivered', value: messageStats.delivered, color: '#9b59b6' },
+        { label: 'Seen', value: messageStats.seen, color: '#3498db' },
+        { label: 'Replied', value: messageStats.replied, color: '#2ecc71' },
+        { label: 'Clicked Link', value: messageStats.clicked, color: '#e74c3c' }
+      ]; %>
+      <% const maxVal = Math.max(...funnelData.map(d => d.value), 1); %>
+      <% funnelData.forEach(item => { %>
+      <div style="margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span><%= item.label %></span>
+          <strong><%= item.value %></strong>
+        </div>
+        <div style="background: #f0f0f0; border-radius: 4px; height: 24px;">
+          <div style="background: <%= item.color %>; border-radius: 4px; height: 100%; width: <%= Math.round(item.value / maxVal * 100) %>%; transition: width 0.3s;"></div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-2">
+  <div class="card-header">
+    <span class="card-title">Leads Extracted (Last 30 Days)</span>
+  </div>
+  <div style="height: 300px; padding: 20px 0;">
+    <div style="display: flex; align-items: flex-end; height: 250px; gap: 4px;">
+      <% const maxDateVal = Math.max(...dateStats.map(d => d.count), 1); %>
+      <% dateStats.forEach(stat => { %>
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+        <div style="background: #4361ee; width: 100%; border-radius: 4px 4px 0 0; height: <%= Math.round(stat.count / maxDateVal * 200) %>px; min-height: 2px;"
+             title="<%= stat._id %>: <%= stat.count %> leads"></div>
+        <span class="text-sm text-muted" style="transform: rotate(-45deg); font-size: 10px; margin-top: 5px;"><%= stat._id.slice(5) %></span>
+      </div>
+      <% }) %>
+      <% if (dateStats.length === 0) { %>
+      <div class="text-muted text-sm" style="width: 100%; text-align: center; padding: 50px;">No data yet</div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-2">
+  <div class="card-header">
+    <span class="card-title">Conversion Rates</span>
+  </div>
+  <div class="grid-2" style="padding: 20px 0;">
+    <div style="text-align: center; padding: 20px;">
+      <div style="font-size: 48px; font-weight: 700; color: #4361ee;">
+        <%= messageStats.total > 0 ? Math.round(messageStats.messaged / messageStats.total * 100) : 0 %>%
+      </div>
+      <div class="text-muted">Message Rate</div>
+    </div>
+    <div style="text-align: center; padding: 20px;">
+      <div style="font-size: 48px; font-weight: 700; color: #2ecc71;">
+        <%= messageStats.messaged > 0 ? Math.round(messageStats.replied / messageStats.messaged * 100) : 0 %>%
+      </div>
+      <div class="text-muted">Reply Rate</div>
+    </div>
+    <div style="text-align: center; padding: 20px;">
+      <div style="font-size: 48px; font-weight: 700; color: #f39c12;">
+        <%= messageStats.messaged > 0 ? Math.round(messageStats.seen / messageStats.messaged * 100) : 0 %>%
+      </div>
+      <div class="text-muted">Seen Rate</div>
+    </div>
+    <div style="text-align: center; padding: 20px;">
+      <div style="font-size: 48px; font-weight: 700; color: #e74c3c;">
+        <%= messageStats.messaged > 0 ? Math.round(messageStats.clicked / messageStats.messaged * 100) : 0 %>%
+      </div>
+      <div class="text-muted">Click Rate</div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
