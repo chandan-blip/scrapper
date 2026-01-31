@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E676"/>
+      <stop offset="100%" stop-color="#69F0AE"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B0E1A"/>
+      <stop offset="100%" stop-color="#121628"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <!-- Diamond shape behind the Z -->
+  <path d="M256 80 L400 256 L256 432 L112 256 Z" fill="rgba(0,0,0,0.12)"/>
+  <!-- Letter Z -->
+  <text x="256" y="340" font-family="Arial,Helvetica,sans-serif" font-size="320" font-weight="900" text-anchor="middle" fill="url(#accent)">Z</text>
+  <!-- Small 7 badge -->
+  <circle cx="400" cy="112" r="64" fill="url(#accent)"/>
+  <text x="400" y="138" font-family="Arial,Helvetica,sans-serif" font-size="80" font-weight="900" text-anchor="middle" fill="#00E676">7</text>
+</svg>

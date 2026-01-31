@@ -4,8 +4,8 @@
   "description": "Instagram Lead Tracker with Admin Panel",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
+    "start": "node server.js",
+    "dev": "nodemon server.js",
     "extract": "node server.js"
   },
   "dependencies": {
